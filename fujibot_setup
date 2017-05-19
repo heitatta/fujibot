@@ -1,0 +1,103 @@
+developer.amazon.com にアカウント作る
+
+Alexa メニューから skill 作成メニューを選ぶ
+
+Skill Infomation
+ - SkillType: Custom
+ - Lanaguage: English US
+ - Name: なんでも
+ - Invocation Name: fuji bot
+
+Interaction Model
+- Intent Schema
+{
+  "intents": [
+    {
+      "slots": [
+        {
+          "name": "Company",
+          "type": "LITERAL"
+        }
+      ],
+      "intent": "StockPriceIntent"
+    },
+    {
+      "slots": [
+        {
+          "name": "Company",
+          "type": "LITERAL"
+        }
+      ],
+      "intent": "NewsIntent"
+    },
+    {
+      "intent": "NextIntent"
+    },
+    {
+      "intent": "HelpIntent"
+    },
+    {
+      "intent": "StopIntent"
+    }
+  ]
+}
+
+- Sample Utterances
+StockPriceIntent what's the price of {nomura|Company}
+StockPriceIntent what is the sotck price of {nomura holdings|Company}
+StockPriceIntent what's price of {NRI|Company}
+StockPriceIntent what is stock price of {sony|Company}
+StockPriceIntent how much the price of {ibm|Company}
+StockPriceIntent how much the stock price of {ibm|Company}
+StockPriceIntent how much is price of {ibm|Company}
+StockPriceIntent how much is stock price of {ibm|Company}
+StockPriceIntent how about the price of {toshiba|Company}
+StockPriceIntent how about the stock price of {jal| Company}
+StockPriceIntent how about {first retailing|Company} price
+StockPriceIntent how about {Nintendo|Company} stock price
+StockPriceIntent how about {s.m.b.c.|Company} price
+StockPriceIntent how about {nikkei|Company} stock price
+StockPriceIntent get {nikkei|Company}
+StockPriceIntent get the price of {amazon|Company}
+StockPriceIntent get the stock price of {apple|Company}
+HelpIntent help
+HelpIntent help me
+HelpIntent what can I ask you
+HelpIntent get help
+HelpIntent what commands can I ask
+HelpIntent what commands can I say
+HelpIntent what can I do
+HelpIntent what can I use this for
+HelpIntent what questions can I ask
+HelpIntent what can you do
+HelpIntent what do you do
+HelpIntent how do I use you
+HelpIntent how can I use you
+HelpIntent what can you tell me
+StopIntent stop it
+StopIntent stop
+StopIntent shut up
+StopIntent thanks
+StopIntent thank you
+StopIntent Goodbye
+NewsIntent news
+NewsIntent tell me some news
+NewsIntent news of {Nomura|Company}
+NewsIntent news about {Panasonic|Company}
+NewsIntent What do you know about {Nomura Research|Company}
+NewsIntent tell me the news of {ANA|Company}
+NewsIntent Do you know anything about {Google|Company}
+NextIntent next
+NextIntent skip
+NextIntent skip forward
+
+
+Configuration
+- Endpoint
+  AWS Lambda ARN / North America を選んで、lambda の ARN を指定
+  lambda 側では、イベントに Alexa Skill Set を登録
+
+
+アプリケーションの登録
+   http://alexa.amazon.com/spa/index.html#welcome
+   "Your skills" から選ぶ
