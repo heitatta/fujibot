@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Sample skill of Alexa
   - Here tuser request to get a companies' stock price.
@@ -23,17 +24,26 @@ Text = {
     "welcome": {
         "title": "Welcome",
         "speech": """Welcome to fuji bot. 
-        I can tell you stock prices of any company.
+        I can tell you stock prices of any companies.
         Ask 'how much is the stock price of some company'
         """,
-        "reprompt": "Please ask how much the stock price of a company is"
+        "reprompt": """Please ask how much the stock price of a company is,
+        or I can tell you some news.
+        Just say news.
+        """
     },
     "price": {
         "title": "Price",
-        "speech_org_1": "the price of nomura holding's is %s yen",
+        "speech_org_1": "the price of nomura holding's is\n\n %s yen",
         "speech_org_2": """I don't know about %s. 
-        But I know the price of nomura holding's is %s yen
+        But I know the price of nomura holding's is\n\n %s yen
         """,
+        "speech": "",
+        "reprompt": "Please ask how much the stock price of a company is"
+    },
+    "real_price": {
+        "title": "Price",
+        "speech_org": "the price of %s is\n\n %s yen",
         "speech": "",
         "reprompt": "Please ask how much the stock price of a company is"
     },
@@ -55,13 +65,15 @@ Text = {
         "speech": """Please specifiy the company name by asking
         'how much is the stock price of some-company-name?'
         """,
-        "reprompt": "Please ask how much the stock price of a company is"
+        "reprompt": """Please ask how much the stock price of a company is,
+        or\n I can tell you some news
+        """
     },
-    "unknonw": {
+    "unknown": {
         "title": "Unknown Request",
         "speech": """I can't understand your request.
         Please ask the stock price of some company
-        or\n I can tell you some news'
+        or\n I can tell you some news
         """,
         "reprompt": "Please ask how much the stock price of a company is"
     },
@@ -80,7 +92,9 @@ Text = {
         "reprompt": None
     }
 }
-            
+
+IDS_API_ENDPOINT = "http://13.55.87.145/v1/api/"
+
 class RequestHandler:
     def __init__(self, request, session):
         self.request = request
@@ -116,18 +130,35 @@ class RequestHandler:
         return self.response('error', True)
     
     def price(self):
-        if not self.intent['slots'].has_key('Company'):
+        company = self._get_company_name()
+        if company == None:
             return self.response('price_unknown')
-        if not self.intent['slots']['Company'].has_key('value'):
-            return self.response('price_unknown')
-        
-        company = self.intent['slots']['Company']['value']
         price = self._get_price()
         self.info("company: %s, price: %s" % (company, price))
 
         self._set_price_speech(company, price)
         return self.response('price')
 
+    def real_price(self):
+        company = self._get_company_name()
+        if company == None:
+            return self.response('price_unknown')
+        price = self._get_real_price(company)
+        if price == None:
+            return self.response('price_unknown')
+        self.info("company: %s, price: %s" % (company, price))
+
+        speech = Text['real_price']['speech_org'] % (company, price)
+        Text['real_price']['speech'] = speech
+        return self.response('real_price')
+        
+    def _get_company_name(self):
+        if not self.intent['slots'].has_key('Company'):
+            return None
+        if not self.intent['slots']['Company'].has_key('value'):
+            return None
+        return self.intent['slots']['Company']['value']
+        
     def _get_price(self):
         # get closing stock price of 8604 (nomura)
         url = 'https://www.google.com/finance/getprices?q=8604&x=TYO&i=300&p=30m&f=d,h'
@@ -137,7 +168,24 @@ class RequestHandler:
             m = re.match(r"^a[0-9]*,([0-9.]*)", line)
             if m:
                 return m.group(1)
-    
+
+    def _get_real_price(self, company):
+        url = IDS_API_ENDPOINT + "/corporations/attribute.json?eng=" + company.upper()
+        with contextlib.closing(urllib.urlopen(url)) as f:
+            data = json.load(f)
+        if len(data['response']) == 0:
+            return None
+        self.info(json.dumps(data))
+        # XXX: 複数ヒットした場合は先頭の企業を取ってしまっている
+        oldcd = data['response'][0]['oldcd']
+
+        url = IDS_API_ENDPOINT + "/quotes/delayed.json?issueCode=" + oldcd
+        with contextlib.closing(urllib.urlopen(url)) as f:
+            data = json.load(f)
+        if len(data['response']) == 0:
+            return None
+        return data['response'][0]['lastprice']
+
     def _set_price_speech(self, company, price):
         if company in ["nomura", "nomura holdings"]:
             speech = Text['price']['speech_org_1'] % (price)
@@ -156,6 +204,8 @@ class RequestHandler:
             Text['news']['speech'] = Text['news']['speech_company'] % (company)
         self.attributes['news_entries'] = json.dumps(gnews)
         self.attributes['news_count'] = 1
+        if len(gnews) == 0:
+            return self.response('unknown')
         Text['news']['speech'] = Text['news']['speech'] + gnews[0]
         return self.response('news')
         
@@ -180,8 +230,12 @@ class RequestHandler:
         return title + "\n" + description
         
     def next(self):
+        if not self.attributess.has_key('news_entries'):
+            return self.response('unknown')
         gnews = json.loads(self.attributes['news_entries'])
         count = self.attributes['news_count']
+        if len(gnews) <= count:
+            return self.response('unknown')
         Text['news']['speech'] = gnews[count]
         self.attributes['news_count'] = count + 1
         return self.response('news')
@@ -260,6 +314,8 @@ class EventHandler:
         self.info("INTENT", intent_name)
         if intent_name == "StockPriceIntent":
             return self.request_handler.price()
+        elif intent_name == "RealStockPriceIntent":
+            return self.request_handler.real_price()
         elif intent_name == "NewsIntent":
             return self.request_handler.news()
         elif intent_name in ["NextIntent", "AMAZON.NextIntent"]:

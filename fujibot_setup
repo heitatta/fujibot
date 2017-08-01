@@ -1,8 +1,8 @@
-developer.amazon.com にアカウント作る
+・developer.amazon.com にアカウント作る
 
-Alexa メニューから skill 作成メニューを選ぶ
+・Alexa メニューから skill 作成メニューを選ぶ
 
-Skill Infomation
+・Skill Infomation
  - SkillType: Custom
  - Lanaguage: English US
  - Name: なんでも
@@ -42,6 +42,22 @@ Interaction Model
   ]
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 - Sample Utterances
 StockPriceIntent what's the price of {nomura|Company}
 StockPriceIntent what is the sotck price of {nomura holdings|Company}
@@ -57,9 +73,9 @@ StockPriceIntent how about {first retailing|Company} price
 StockPriceIntent how about {Nintendo|Company} stock price
 StockPriceIntent how about {s.m.b.c.|Company} price
 StockPriceIntent how about {nikkei|Company} stock price
-StockPriceIntent get {nikkei|Company}
-StockPriceIntent get the price of {amazon|Company}
-StockPriceIntent get the stock price of {apple|Company}
+RealStockPriceIntent get {nikkei|Company}
+RealStockPriceIntent get the price of {amazon|Company}
+RealStockPriceIntent get the stock price of {apple|Company}
 HelpIntent help
 HelpIntent help me
 HelpIntent what can I ask you
@@ -77,10 +93,11 @@ HelpIntent what can you tell me
 StopIntent stop it
 StopIntent stop
 StopIntent shut up
-StopIntent thanks
-StopIntent thank you
+StopIntent that's enough
 StopIntent Goodbye
 NewsIntent news
+NewsIntent get the news
+NewsIntent get the news of {Microsoft|Company}
 NewsIntent tell me some news
 NewsIntent news of {Nomura|Company}
 NewsIntent news about {Panasonic|Company}
